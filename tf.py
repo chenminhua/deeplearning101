@@ -4,22 +4,26 @@ from numpy.random import RandomState
 
 batch_size = 8
 
-# 定义神经网络的参数
-w1 = tf.Variable(tf.random_normal([2,3], stddev=1, seed=1))
-w2 = tf.Variable(tf.random_normal([3,1], stddev=1, seed=1))
+with tf.name_scope("input"):
+    x = tf.placeholder(tf.float32, shape=[None, 2], name="x-input")
+    y_ = tf.placeholder(tf.float32, shape=[None, 1], name="y-input")
 
+# 定义神经网络的参数以及神经网络前向传播过程
+with tf.name_scope("layer-1"):
+    w1 = tf.Variable(tf.random_normal([2,3], stddev=1, seed=1))
+    a = tf.matmul(x, w1)
 
-x = tf.placeholder(tf.float32, shape=[None, 2], name="x-input")
-y_ = tf.placeholder(tf.float32, shape=[None, 1], name="y-input")
+with tf.name_scope("layer-2"):
+    w2 = tf.Variable(tf.random_normal([3,1], stddev=1, seed=1))
+    y = tf.matmul(a, w2)
 
-# 定义神经网络前向传播过程
-a = tf.matmul(x, w1)
-y = tf.matmul(a, w2)
+with tf.name_scope("loss"):
+    # 定义损失函数和反向传播算法
+    cross_entropy = -tf.reduce_mean(
+        y_ * tf.log(tf.clip_by_value(y, 1e-10, 1.0)))
 
-# 定义损失函数和反向传播算法
-cross_entropy = -tf.reduce_mean(
-    y_ * tf.log(tf.clip_by_value(y, 1e-10, 1.0)))
-train_step = tf.train.AdamOptimizer(0.001).minimize(cross_entropy)
+with tf.name_scope("train"):
+    train_step = tf.train.AdamOptimizer(0.001).minimize(cross_entropy)
 
 # 生成一个模拟数据集
 rdm = RandomState()
