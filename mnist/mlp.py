@@ -38,8 +38,13 @@ optimizer = tf.train.AdamOptimizer(
 
 init_op = tf.global_variables_initializer()
 
+# acc
+correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
+
 with tf.Session() as sess:
     sess.run(init_op)
+    writer = tf.summary.FileWriter('../summary/mnist_mlp', sess.graph)
 
     for epoch in range(training_epochs):
         avg_cost = 0.
@@ -49,8 +54,12 @@ with tf.Session() as sess:
             _, c = sess.run([optimizer, loss], feed_dict={
                             x: batch_x, y: batch_y})
             avg_cost += c / total_batch
-        print('epoch:{}, cost={}'.format(epoch+1, avg_cost))
-    correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
+        print('epoch:{}, cost in training set={}, acc in Validation set {}'.format(
+            epoch+1, avg_cost, accuracy.eval({x: mnist.validation.images, y: mnist.validation.labels})))
+
+    # 训练完成后在测试集上测试acc
+
     print("Accuracy:", accuracy.eval(
         {x: mnist.test.images, y: mnist.test.labels}))
+
+writer.close()
