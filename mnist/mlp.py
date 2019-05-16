@@ -8,6 +8,7 @@ n_hidden_1 = 256  # 第一个隐藏层神经元个数
 n_hidden_2 = 256  # 第二个隐藏层神经元个数
 n_classes = 10
 training_epochs = 15
+REGULARIZATION_RATE = 0.0001
 
 # 网络参数
 weight_h1 = tf.Variable(tf.random_normal([n_input, n_hidden_1]))
@@ -28,8 +29,12 @@ pred = tf.matmul(l2, weight_out) + biases_out
 
 cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
     logits=pred, labels=y))
+
+regularizer = tf.contrib.layers.l2_regularizer(REGULARIZATION_RATE)
+regularization = regularizer(weight_h1) + regularizer(weight_h2)
+loss = cross_entropy_loss + regularization
 optimizer = tf.train.AdamOptimizer(
-    learning_rate=0.001).minimize(cross_entropy_loss)
+    learning_rate=0.001).minimize(loss)
 
 init_op = tf.global_variables_initializer()
 
@@ -41,7 +46,7 @@ with tf.Session() as sess:
         total_batch = int(mnist.train.num_examples/100)  # batch size为100
         for i in range(total_batch):
             batch_x, batch_y = mnist.train.next_batch(100)
-            _, c = sess.run([optimizer, cross_entropy_loss], feed_dict={
+            _, c = sess.run([optimizer, loss], feed_dict={
                             x: batch_x, y: batch_y})
             avg_cost += c / total_batch
         print('epoch:{}, cost={}'.format(epoch+1, avg_cost))
