@@ -1,3 +1,5 @@
 summary
 data
 .vscode
+*/model/
+*/__pycache__/

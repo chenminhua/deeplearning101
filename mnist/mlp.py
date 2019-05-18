@@ -6,9 +6,9 @@ n_input = 784   # 输入层神经元个数
 n_output = 10   # 输出层神经元个数
 n_hidden_1 = 256  # 第一个隐藏层神经元个数
 n_hidden_2 = 256  # 第二个隐藏层神经元个数
-n_classes = 10
 training_epochs = 15
 REGULARIZATION_RATE = 0.0001
+BATCH_SIZE = 100
 
 # 网络参数
 weight_h1 = tf.Variable(tf.random_normal([n_input, n_hidden_1]))
@@ -48,9 +48,10 @@ with tf.Session() as sess:
 
     for epoch in range(training_epochs):
         avg_cost = 0.
-        total_batch = int(mnist.train.num_examples/100)  # batch size为100
+        total_batch = int(mnist.train.num_examples /
+                          BATCH_SIZE)  # batch size为100
         for i in range(total_batch):
-            batch_x, batch_y = mnist.train.next_batch(100)
+            batch_x, batch_y = mnist.train.next_batch(BATCH_SIZE)
             _, c = sess.run([optimizer, loss], feed_dict={
                             x: batch_x, y: batch_y})
             avg_cost += c / total_batch
