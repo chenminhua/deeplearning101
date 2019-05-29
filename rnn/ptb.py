@@ -37,9 +37,33 @@ class PTBModel():
         if is_training:
             lstm_cell = tf.nn.rnn_cell.DropoutWrapper(
                 lstm_cell, output_keep_prob=KEEP_PROB)
-            cell = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * NUM_LAYERS)
+        cell = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * NUM_LAYERS)
 
-            # 初始化最初的状态，也就是全零的向量
-            self.initial_state = cell.zero_state(batch_size, tf.float32)
-            # 将单词id转换为单词向量
-            embedding = tf.get_variable("embedding", [VOCAB_SIZE, HIDDEN_SIZE])
+        # 初始化最初的状态，也就是全零的向量
+        self.initial_state = cell.zero_state(batch_size, tf.float32)
+        # 将单词id转换为单词向量
+        embedding = tf.get_variable("embedding", [VOCAB_SIZE, HIDDEN_SIZE])
+
+        inputs = tf.nn.embedding_lookup(embedding, self.input_data)
+
+        # 只在训练时使用dropout
+        if is_training:
+            inputs = tf.nn.dropout(inputs, KEEP_PROB)
+
+        # 定义输出列表
+        outputs = []
+
+        # state存储不同batch中LSTM的状态，将其初始化为0
+        state = self.initial_state
+        with tf.variable_scope("RNN"):
+            for time_step in range(num_steps):
+                if time_step > 0:
+                    tf.get_variable_scope().reuse_variables()
+                    # 从输入数据中获取当前时刻的输入并传入lstm结构中
+                    cell_output, state = cell(
+                        inputs[:, time_step, :], state)
+                    outputs.append(cell_output)
+
+        # 把输出队列展开成 [batch, hidden_size * num_steps]形状，
+        # 然后reshape成 [batch * numsteps, hidden_size]
+        output = tf.reshape(tf.concat(1, outputs), [-1, HIDDEN_SIZE])
