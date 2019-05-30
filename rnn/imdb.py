@@ -1,3 +1,5 @@
+# reference https://www.youtube.com/watch?v=si8zZHkufRY
+
 from __future__ import division, print_function, absolute_import
 
 import tflearn
